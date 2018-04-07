@@ -26,7 +26,8 @@
   },
   "homepage": "https://github.com/GitOwl/cli#readme",
   "dependencies": {
+    "commander": "^2.15.1",
     "inquirer": "^5.2.0",
-    "commander": "^2.15.1"
+    "live-server": "^1.2.0"
   }
 }
