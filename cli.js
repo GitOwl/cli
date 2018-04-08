@@ -1,12 +1,19 @@
 #!/usr/bin/env node
 'use strict';
 
-var program = require('commander'),
-	inquirer = require('inquirer'),
+var	config, routes, path
+
+var fs         = require('fs-extra'),
+	yaml       = require('js-yaml'),
+	color      = require('chalk'),
+	program    = require('commander'),
+	inquirer   = require('inquirer'),
 	liveServer = require("live-server");
 
-program.version('0.0.1', '-v, --version').description('This cli helps you to manager GitOwl.')
 
+isGitowl()
+
+program.version('0.0.1', '-v, --version').description('This cli helps you to manager GitOwl.')
 
 var helps = {
 	install(){
@@ -17,6 +24,8 @@ var helps = {
 	routes(){
 		console.log('\n  Examples:\n')
 		console.log('    $ gitowl routes')
+		console.log('    $ gitowl routes list')
+		console.log('    $ gitowl routes scan')
 		console.log('    $ gitowl routes fix\n')
 	},
 	sitemap(){
@@ -26,6 +35,8 @@ var helps = {
 	config(){
 		console.log('\n  Examples:\n')
 		console.log('    $ gitowl config')
+		console.log('    $ gitowl config edit')
+		console.log('    $ gitowl config show')
 	},
 	serve(){
 		console.log('\n  Examples:\n')
@@ -51,21 +62,31 @@ var run = {
 	},
 
 	routes(cmd){
-		console.log('Routes: Coming Soon..')
-		if(cmd){
-			console.log(cmd)
-		} 
+		
+		if(cmd == undefined) cmd = 'list'
+		if (!opt.routes[cmd]) {
+			console.log(color.yellow("\n ERROR: Undefined command "+cmd)+"\n\n  Check:\n   $ gitowl routes --help\n")	
+			process.exit(1)
+		}
+
+		load.config()
+		load.paths(cmd)
 	},
 
 	sitemap(cmd){
 		console.log('Sitemap: Coming Soon..')
-		if(cmd){
-			console.log(cmd)
+		load.config()
+		try{
+			load.paths(cmd)
+		} catch(e){
+			cmd = !cmd ? '' : "'"+cmd+"'"			
+			console.log(color.yellow("\n ERROR: Undefined command "+cmd)+"\n\n  Check:\n   $ gitowl routes --help\n")	
 		}
 	},
 
 	config(cmd){
-		console.log('Config: Coming Soon..')
+		load.config()
+		console.log(config)
 		if(cmd){
 			console.log(cmd)
 		} 
@@ -77,8 +98,7 @@ var run = {
 
 		liveServer.start({
 			port: 8181, // Set the server port. Defaults to 8080.
-			host: "localhost",
-			// host: "0.0.0.0", // Set the address to bind to. Defaults to 0.0.0.0 or process.env.IP.
+			host: "localhost",	// host: "0.0.0.0", // Set the address to bind to. Defaults to 0.0.0.0 or process.env.IP.
 			root: "./", // Set root directory that's being served. Defaults to cwd.
 			open: true, // When false, it won't load your browser by default.
 			ignore: 'scss', // comma-separated string for paths to ignore
@@ -92,6 +112,142 @@ var run = {
 	}
 	
 }
+
+var opt = {
+	routes: {
+		list(){
+			console.log(color.blue('\n Routes:\n'))
+
+			routes.forEach(function(item, key, array) {
+				let msj = ''
+
+				if(item.folder){
+					try {
+						fs.statSync(path+"/pages/"+item.folder)
+					} catch(e){
+						msj = color.red(' Not found!')
+					}
+
+					console.log('  - '+item.folder+" "+color.grey(item.title)+msj)
+
+	
+					item.items.forEach(function(item, key, array) {
+						let tree = (key == array.length-1) ? "    └─ " : "    ├─ "
+						console.log(tree+item.file+" "+color.grey(item.title)+msj)
+
+					});
+
+				} else {
+					try {
+						fs.statSync(path+"/pages/"+item.file)
+					} catch(e){
+						msj = color.red(' Not found!')
+					}
+
+					console.log('  - '+item.file+" "+color.grey(item.title)+msj)
+				}
+				console.log(' ')
+			});
+
+		},
+		scan(){
+			console.log('Route scan')		
+		},
+		fix(){
+			console.log('Route fix')		
+		}
+	}
+}
+
+
+
+var load = {
+	config(){
+		try {
+			config = yaml.safeLoad(fs.readFileSync('./config.yaml', 'utf8'));
+		} catch (e) {
+			console.log(e);
+		}
+	},
+
+	route(path){
+		try {
+			routes = yaml.safeLoad(fs.readFileSync(path+'routes.yaml', 'utf8'));
+		} catch (e) {
+			console.log(color.yellow("\n ERROR: Something happened with "+path+"routes.yaml\n"))
+			console.log(color.red(" "+e.message+"\n"));
+		}
+	},
+	
+	paths(cmd){
+		if(config.lang.active){
+			let lang = []
+
+			config.paths.forEach(function(element, key) {
+				lang.push({name:element.title,value:key})
+			});
+
+			inquirer.prompt([{ name: 'key', type: 'list', choices: lang,
+				message: 'What language do you want?',
+			}]).then((answers) => {
+				let selected = config.paths[answers.key]
+
+				if(config.version.active){
+			 		let vers = []
+
+					selected.versions.forEach(function(element, key) {
+						vers.push({name:element.title,value:key})
+					});
+
+					inquirer.prompt([{ name: 'key',	type: 'list', choices: vers,
+						message: 'What version do you want?',
+					}]).then((answers) => {
+						path = './'+selected.path+'/'+selected.versions[answers.key].path+'/'
+						load.route(path)
+						opt.routes[cmd]()
+					});
+				} else {
+					path = './'+selected.path+'/'
+					load.route(path)
+					opt.routes[cmd]()
+				}
+			});
+		} else {
+			if(config.version.active){
+		 		let vers = []
+
+				config.paths.forEach(function(element, key) {
+					vers.push({name:element.title,value:key})
+				});
+
+				inquirer.prompt([{ name: 'key',	type: 'list', choices: vers,
+					message: 'What version do you want?',
+				}]).then((answers) => {
+					path = './'+config.paths[answers.key].path+'/'
+					load.route(path)
+					opt.routes[cmd]()
+				});
+
+			} else {
+				path = './'
+				load.route(path)
+				opt.routes[cmd]()
+			}
+		}
+	}
+	
+}
+
+function isGitowl(){
+	try {
+		fs.statSync('./gitowl.js')
+	} catch(e){
+		console.log(color.yellow('No documentation was found'))
+		process.exit(1)
+	}
+}
+
+
 
 program
   .command('install [cmd]')
