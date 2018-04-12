@@ -18,14 +18,15 @@ program.version('0.0.1', '-v, --version').description('This cli helps you to man
 var helps = {
 	install(){
 		console.log('\n  Examples:\n')
-		console.log('    $ gitowl install')
-		console.log('    $ gitowl install advanced\n')
+		console.log('    $ gitowl install\n')
 	},
 	routes(){
 		console.log('\n  Examples:\n')
 		console.log('    $ gitowl routes')
 		console.log('    $ gitowl routes list')
 		console.log('    $ gitowl routes scan')
+		console.log('    $ gitowl routes add')
+		console.log('    $ gitowl routes remove')
 		console.log('    $ gitowl routes fix\n')
 	},
 	sitemap(){
@@ -36,26 +37,32 @@ var helps = {
 		console.log('\n  Examples:\n')
 		console.log('    $ gitowl config')
 		console.log('    $ gitowl config edit')
-		console.log('    $ gitowl config show')
+		console.log('    $ gitowl config show\n')
 	},
 	serve(){
 		console.log('\n  Examples:\n')
 		console.log('    $ gitowl')
-		console.log('    $ gitowl serve')
+		console.log('    $ gitowl serve\n')
 	}
 
 }
 
 var run = {
 	install(cmd){
+		console.log(color.blue.bold('\n Install:\n'))
 
 		inquirer.prompt([{
 			name: 'type',
 			type: 'list',
 			message: 'With what configuration you want to start?',
-			choices: ['Basic', 'Versions', 'Languages', 'Versions + Languages'],
-			default: 0,
+			choices: [{name:'Basic', value:'basic'}, 
+					  {name:'Versions', value:'versions'}, 
+					  {name:'Languages', value:'lang'}, 
+					  {name:'Versions + Languages '+color.grey('(recommended)'), value:'advanced'}],
 		}]).then((answers) => {
+
+			// 1. Check github gitowl release folder a file like releases.json
+			// 2. Get the lastest version or which user selected
 
 			console.log(`\nHi. I like ${answers.type}! 😋\n`);
 		});
@@ -104,7 +111,7 @@ var run = {
 			ignore: 'scss', // comma-separated string for paths to ignore
 			file: "index.html", // When set, serve this file (server root relative) for every 404 (useful for single-page applications)
 			wait: 1000, // Waits for all changes, before reloading. Defaults to 0 sec.
-			mount: [['/components', './node_modules']], // Mount a directory to a route.
+			//mount: [['/components', './node_modules']], // Mount a directory to a route.
 			logLevel: 1, // 0 = errors only, 1 = some, 2 = lots
 			middleware: [function(req, res, next) { next(); }] // Takes an array of Connect-compatible middleware that are injected into the server middleware stack
 		})
@@ -116,7 +123,8 @@ var run = {
 var opt = {
 	routes: {
 		list(){
-			console.log(color.blue('\n Routes:\n'))
+			let broken = 0
+			console.log(color.blue.bold('\n Routes:\n'))
 
 			routes.forEach(function(item, key, array) {
 				let msj = ''
@@ -126,10 +134,9 @@ var opt = {
 						fs.statSync(path+"/pages/"+item.folder)
 					} catch(e){
 						msj = color.red(' Not found!')
+						broken++
 					}
-
 					console.log('  - '+item.folder+" "+color.grey(item.title)+msj)
-
 	
 					item.items.forEach(function(item, key, array) {
 						let tree = (key == array.length-1) ? "    └─ " : "    ├─ "
@@ -142,6 +149,7 @@ var opt = {
 						fs.statSync(path+"/pages/"+item.file)
 					} catch(e){
 						msj = color.red(' Not found!')
+						broken++
 					}
 
 					console.log('  - '+item.file+" "+color.grey(item.title)+msj)
@@ -149,12 +157,20 @@ var opt = {
 				console.log(' ')
 			});
 
+			if(broken > 0){
+				console.log(" "+color.yellow('There are ')+color.red(broken)+color.yellow(' elements not found!')+"")
+				console.log(" "+color.grey('You can use')+color.cyan.italic(' gitowl routes fix ')+color.gray('to repair it')+"\n")
+			}
+
+
 		},
 		scan(){
-			console.log('Route scan')		
+			console.log('Route scan')	
+			// Search from folders files not listed	
 		},
 		fix(){
-			console.log('Route fix')		
+			console.log('Route fix')
+			// Delete or repair not found files
 		}
 	}
 }
