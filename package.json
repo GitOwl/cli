@@ -30,6 +30,8 @@
     "fs-extra": "^5.0.0",
     "inquirer": "^5.2.0",
     "js-yaml": "^3.11.0",
-    "live-server": "^1.2.0"
+    "live-server": "^1.2.0",
+    "marked": "^0.3.19",
+    "marked-terminal": "^2.0.0"
   }
 }

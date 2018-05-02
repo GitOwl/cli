@@ -8,12 +8,11 @@ var fs         = require('fs-extra'),
 	color      = require('chalk'),
 	program    = require('commander'),
 	inquirer   = require('inquirer'),
-	liveServer = require("live-server");
-
+	liveServer = require('live-server');
 
 isGitowl()
 
-program.version('0.0.1', '-v, --version').description('This cli helps you to manager GitOwl.')
+program.version('0.1.0', '-v, --version').description('This cli helps you to manager GitOwl.')
 
 var helps = {
 	install(){
@@ -43,6 +42,10 @@ var helps = {
 		console.log('\n  Examples:\n')
 		console.log('    $ gitowl')
 		console.log('    $ gitowl serve\n')
+	},
+	view(){
+		console.log('\n  Examples:\n')
+		console.log('    $ gitowl view')
 	}
 
 }
@@ -81,14 +84,15 @@ var run = {
 	},
 
 	sitemap(cmd){
-		console.log('Sitemap: Coming Soon..')
+
+		/*console.log('Sitemap: Coming Soon..')
 		load.config()
 		try{
 			load.paths(cmd)
 		} catch(e){
 			cmd = !cmd ? '' : "'"+cmd+"'"			
 			console.log(color.yellow("\n ERROR: Undefined command "+cmd)+"\n\n  Check:\n   $ gitowl routes --help\n")	
-		}
+		}*/
 	},
 
 	config(cmd){
@@ -111,11 +115,22 @@ var run = {
 			ignore: 'scss', // comma-separated string for paths to ignore
 			file: "index.html", // When set, serve this file (server root relative) for every 404 (useful for single-page applications)
 			wait: 1000, // Waits for all changes, before reloading. Defaults to 0 sec.
-			//mount: [['/components', './node_modules']], // Mount a directory to a route.
 			logLevel: 1, // 0 = errors only, 1 = some, 2 = lots
 			middleware: [function(req, res, next) { next(); }] // Takes an array of Connect-compatible middleware that are injected into the server middleware stack
 		})
 
+	},
+
+	view(){
+		var marked = require('marked'),
+			TerminalRenderer = require('marked-terminal');
+
+		marked.setOptions({
+			renderer: new TerminalRenderer()
+		});
+
+		// Show the parsed data
+		console.log(marked('# Hello \n This is **markdown** printed in the `terminal`'))
 	}
 	
 }
@@ -302,6 +317,14 @@ program
   .description('Make a server to show GitOwl.')
   .action(run.serve)
   .on('--help', helps.serve);
+
+
+
+program
+  .command('view [cmd]')
+  .description('Show on console the documentation.')
+  .action(run.view)
+  .on('--help', helps.view);
 
 
 
