@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/GitOwl/cli#readme",
   "dependencies": {
+    "blessed": "^0.1.81",
     "commander": "^2.15.1",
     "fs-extra": "^5.0.0",
     "inquirer": "^5.2.0",
