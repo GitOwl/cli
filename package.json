@@ -1,5 +1,5 @@
 {
-  "name": "cli",
+  "name": "@gitowl/cli",
   "version": "1.0.0",
   "description": "Cli for Gitowl",
   "main": "cli.js",
@@ -27,12 +27,13 @@
   "homepage": "https://github.com/GitOwl/cli#readme",
   "dependencies": {
     "blessed": "^0.1.81",
-    "commander": "^2.15.1",
-    "fs-extra": "^5.0.0",
-    "inquirer": "^5.2.0",
-    "js-yaml": "^3.11.0",
-    "live-server": "^1.2.0",
-    "marked": "^0.3.19",
-    "marked-terminal": "^2.0.0"
+    "chalk": "^4.0.0",
+    "commander": "^5.1.0",
+    "fs-extra": "^9.0.0",
+    "inquirer": "^7.1.0",
+    "js-yaml": "^3.14.0",
+    "live-server": "^1.2.1",
+    "marked": "^1.1.0",
+    "marked-terminal": "^4.1.0"
   }
 }

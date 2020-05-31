@@ -3,7 +3,7 @@
 
 var	config, routes, path
 
-var fs         = require('fs-extra'),
+var fs       = require('fs-extra'),
 	color      = require('chalk'),
 	program    = require('commander');
 
@@ -12,9 +12,9 @@ isGitowl()
 program.version('0.1.0', '-v, --version').description('This cli helps you to manager GitOwl.')
 
 var helps = require('./lib/helps.js'),
-	run   = require('./lib/run.js'),
-	opt   = require('./lib/opt.js'),
-	load  = require('./lib/load.js');
+    run   = require('./lib/run.js'),
+    opt   = require('./lib/opt.js'),
+    load  = require('./lib/load.js');
 
 function isGitowl(){
 	try {
@@ -25,12 +25,22 @@ function isGitowl(){
 	}
 }
 
+
+program
+  .command('test')
+  .alias('t')
+  .description('Test GitOwl')
+  .action(run.test)
+  .on('--help', helps.test);
+
+
 program
   .command('install [cmd]')
   .alias('i')
   .description('Install GitOwl')
   .action(run.install)
   .on('--help', helps.install);
+
 
 program
   .command('routes [cmd]')
@@ -56,7 +66,6 @@ program
   .on('--help', helps.config);
 
 
-
 program
   .command('serve [cmd]')
   .description('Make a server to show GitOwl.')
@@ -64,13 +73,11 @@ program
   .on('--help', helps.serve);
 
 
-
 program
   .command('view [cmd]')
   .description('Show on console the documentation.')
   .action(run.view)
   .on('--help', helps.view);
-
 
 
 // program
